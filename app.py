@@ -4,11 +4,12 @@ from surveys import satisfaction_survey as survey
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = "chickenzarecool21837"
+app.config['SECRET_KEY'] = "secretSauce123"
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+
 debug = DebugToolbarExtension(app)
 
-responses = []
+answer = "responses"
 
 @app.route("/")
 def root():
@@ -17,15 +18,17 @@ def root():
     return render_template("home.html", survey = survey )
 
 
-@app.route("/start_survey")
+@app.route("/start_survey", methods=["POST"])
 def start():
     """Started survey and showed first question"""
+    session[answer] = []
     
     return redirect('/questions/0') 
 
 @app.route("/questions/<int:id>")
 def handle_q(id):
-    print("id is" ,id)
+    responses = session.get(answer)
+    
     if id == len(responses):
         return render_template('questions.html', survey = survey , id=id )
     elif len(responses) == len(survey.questions):
@@ -40,7 +43,10 @@ def handle_q(id):
 def handle_answer():
     
     res = request.form["answer"]
+    
+    responses = session[answer]
     responses.append(res)
+    session[answer] = responses
     
     if len(responses) == len(survey.questions):
         return redirect('/thanks')
@@ -50,5 +56,5 @@ def handle_answer():
 @app.route('/thanks')
 def say_thanks():
     
-    # responses = []
+    
     return render_template('thanks.html', survey=survey)
